@@ -24,6 +24,11 @@ class ItemsCog(commands.Cog):
                 "name": "木のツルハシ",
                 "price": 0.5,
                 "id": "wooden_pickaxe"
+            },
+            "stone_pickaxe": {
+                "name": "石のツルハシ",
+                "price": 1.0,
+                "id": "stone_pickaxe"
             }
         }
 
@@ -39,7 +44,7 @@ class ItemsCog(commands.Cog):
         inv = await self.bot.item.get_inventory(interaction.user.id)
 
         if not inv:
-            await interaction.followup.send("❌持ち物は空っぽです。")
+            await interaction.followup.send("❌持ち物は空です。")
         else:
             msg = "\n".join([f"{self.ITEMS.get(item_id, {}).get('name', '不明')}: {count}個 ({self.ITEMS.get(item_id, {}).get('price', '0')}エメラルド)" for item_id, count in inv.items()])
             await interaction.followup.send(f"**あなたの持ち物:**\n{msg}")
@@ -95,6 +100,61 @@ class ItemsCog(commands.Cog):
         await interaction.followup.send(
             f"✅ **{item_info['name']}** を **{個数}個** 売却しました。\n"
             f"💰 **{total_price}エメラルド** を獲得しました。"
+        )
+
+    async def buy_autocomplete(
+        self,
+        interaction: discord.Interaction,
+        current: str,
+    ) -> list[app_commands.Choice[str]]:
+        inv = self.bot.item.get_all_item_list()
+        
+        choices = []
+        for item_id, count in inv.items():
+            item_info = self.ITEMS.get(item_id)
+            if not item_info:
+                continue
+            
+            name = item_info.get("name", "不明")
+            price = item_info.get("price", 0)
+
+            if current.lower() in name.lower():
+                choices.append(
+                    app_commands.Choice(
+                        name=f"{name} (所持: {count} | 単価: {price}エメラルド)",
+                        value=item_id
+                    )
+                )
+            
+            if len(choices) >= 25:
+                break
+        
+        return choices
+
+    @app_commands.command(name="buy", description="アイテムを購入します。")
+    @app_commands.describe(アイテム="購入するアイテム", 個数="購入する数")
+    @app_commands.autocomplete(アイテム=buy_autocomplete)
+    async def buy_item(self, interaction: discord.Interaction, アイテム: str, 個数: int = 1):
+        if 個数 <= 0:
+            return await interaction.response.send_message("❌ 個数は1以上にしてください。", ephemeral=True)
+
+        await interaction.response.defer()
+        info = self.bot.item.get_item_info(アイテム)
+        if not info:
+            return await interaction.followup.send("❌ そのアイテムはショップで扱っていません。")
+
+        total_cost = math.ceil(info["price"] * 個数)
+        balance = await self.bot.money.get_money(interaction.user.id)
+
+        if balance < total_cost:
+            return await interaction.followup.send(f"❌ エメラルドが足りません！（必要: {total_cost} | 所持: {balance}）")
+
+        await self.bot.money.add_money(interaction.user.id, -total_cost)
+        await self.bot.item.add_item(interaction.user.id, アイテム, 個数)
+
+        await interaction.followup.send(
+            f"✅ **{info['name']}** を{個数}個購入しました！\n"
+            f"💸 支払額: **{total_cost}エメラルド**"
         )
 
 async def setup(bot):

@@ -12,6 +12,21 @@ class AdminCog(commands.Cog):
         self.bot = bot
         self.OWNER_ID = 1335428061541437531
 
+    @app_commands.command(name="load", description="Cogをロードします。")
+    async def load_command(
+        self,
+        interaction: discord.Interaction,
+        cog_name: str
+    ):
+        await interaction.response.defer()
+        
+        if interaction.user.id != self.OWNER_ID:
+            return await interaction.followup.send(content="❌ アクセスが拒否されました。")
+
+        await self.bot.load_extension(f"cogs.{cog_name}")
+
+        await interaction.followup.send(embed=discord.Embed(title="✅リロードしました。", color=discord.Color.green()))
+
     @app_commands.command(name="reload", description="Cogをリロードします。")
     async def reload_command(
         self,

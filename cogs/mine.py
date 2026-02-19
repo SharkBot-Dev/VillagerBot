@@ -12,18 +12,30 @@ class MineCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         current: str,
-    ):
-        count = await self.bot.item.get_item_count(interaction.user.id, "wooden_pickaxe")
+    ) -> list[app_commands.Choice[str]]:
+        inv = await self.bot.item.get_inventory(interaction.user.id)
+        items_cog = self.bot.get_cog("ItemsCog")
         
-        if count <= 0:
+        if not items_cog or not inv:
             return []
 
-        choices = [
-            app_commands.Choice(name=f"木のつるはし (所持: {count})", value="wooden_pickaxe")
-        ]
-        return [c for c in choices if current.lower() in c.name.lower()][:25]
+        choices = []
+        for item_id, count in inv.items():
+            if "pickaxe" in item_id:
+                item_info = items_cog.ITEMS.get(item_id)
+                if not item_info:
+                    continue
+                
+                name = item_info["name"]
+                if current.lower() in name.lower():
+                    choices.append(
+                        app_commands.Choice(name=f"{name} (所持: {count})", value=item_id)
+                    )
+        
+        return choices[:25]
 
     @app_commands.command(name="mine", description="鉱石を採掘します。")
+    @app_commands.describe(ツルハシ="使用するツルハシを選択してください")
     @app_commands.autocomplete(ツルハシ=choice_pickaxe_autocomplete)
     async def mine_item(
         self,
@@ -33,28 +45,40 @@ class MineCog(commands.Cog):
         await interaction.response.defer()
 
         items_cog = self.bot.get_cog("ItemsCog")
-        item_info = items_cog.ITEMS.get(ツルハシ)
+        if not items_cog:
+            return await interaction.followup.send("❌")
 
+        item_info = items_cog.ITEMS.get(ツルハシ)
         if not item_info:
-            return await interaction.followup.send(content="❌ 有効なツルハシを選択してください。")
+            return await interaction.followup.send("❌ 有効なツルハシを選択してください。")
 
         pickaxe_count = await self.bot.item.get_item_count(interaction.user.id, ツルハシ)
         if pickaxe_count < 1:
-            return await interaction.followup.send(content=f"❌ {item_info['name']}を持っていません。")
+            return await interaction.followup.send(f"❌ {item_info['name']}を持っていません。")
+
+        reward_id = None
+        break_chance = 8
 
         if ツルハシ == "wooden_pickaxe":
             reward_id = random.choice(["stone", "dirt"])
-            reward_name = self.bot.item.get_item_info(reward_id)
+        elif ツルハシ == "stone_pickaxe":
+            reward_id = random.choice(["stone", "stone", "stone", "dirt"]) 
 
-            await self.bot.item.add_item(interaction.user.id, reward_id, 1)
+        if not reward_id:
+            return await interaction.followup.send("❌ この道具では何も採掘できません。")
 
-            text = f"⛏️ **{reward_name["name"]}** を採掘しました！"
+        reward_info = items_cog.ITEMS.get(reward_id)
+        reward_name = reward_info["name"] if reward_info else "不明な物体"
 
-            if random.randint(1, 8) == 8:
-                await self.bot.item.add_item(interaction.user.id, ツルハシ, -1)
-                text += f"\n❗ {item_info['name']} が壊れてしまいました..."
+        await self.bot.item.add_item(interaction.user.id, reward_id, 1)
 
-            await interaction.followup.send(content=text)
+        text = f"⛏️ **{reward_name}** を採掘しました！"
+
+        if random.randint(1, break_chance) == 1:
+            await self.bot.item.add_item(interaction.user.id, ツルハシ, -1)
+            text += f"\n❗ **{item_info['name']}** が壊れてしまいました..."
+
+        await interaction.followup.send(content=text)
 
 async def setup(bot):
     await bot.add_cog(MineCog(bot))

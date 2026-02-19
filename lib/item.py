@@ -8,6 +8,12 @@ class Item:
 
         self.collection = self.db["VillagerBot"].Player
 
+    def get_all_item_list(self) -> list:
+        items_cog = self.bot.get_cog("ItemsCog")
+        if not items_cog:
+            return []
+        return items_cog.ITEMS
+
     def get_item_info(self, item_id: str) -> dict:
         items_cog = self.bot.get_cog("ItemsCog")
         if not items_cog:
