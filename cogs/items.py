@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 
+import math
+
 from bot import VillagerBot
 
 class ItemsCog(commands.Cog):
@@ -41,6 +43,59 @@ class ItemsCog(commands.Cog):
         else:
             msg = "\n".join([f"{self.ITEMS.get(item_id, {}).get('name', '不明')}: {count}個 ({self.ITEMS.get(item_id, {}).get('price', '0')}エメラルド)" for item_id, count in inv.items()])
             await interaction.followup.send(f"**あなたの持ち物:**\n{msg}")
+
+    async def sell_autocomplete(
+        self,
+        interaction: discord.Interaction,
+        current: str,
+    ):
+        inv = await self.bot.item.get_inventory(interaction.user.id)
+        
+        choices = []
+        for item_id, count in inv.items():
+            item_info = self.ITEMS.get(item_id)
+            if not item_info: continue
+            
+            name = item_info.get("name", "不明")
+            price = item_info.get("price", 0)
+            
+            choice_text = f"{name} (所持: {count} / 単価: {price})"
+            if current.lower() in choice_text.lower():
+                choices.append(app_commands.Choice(name=choice_text, value=item_id))
+        
+        return choices[:25]
+
+    @item.command(name="sell", description="アイテムを売却してエメラルドを得ます。")
+    @app_commands.autocomplete(アイテム=sell_autocomplete)
+    @app_commands.describe(アイテム="売却するアイテム", 個数="売却する数（1以上の整数）")
+    async def item_sell(
+        self,
+        interaction: discord.Interaction,
+        アイテム: str,
+        個数: int = 1
+    ):
+        if 個数 <= 0:
+            return await interaction.response.send_message("❌ 個数は1以上にしてください。", ephemeral=True)
+
+        await interaction.response.defer()
+
+        item_info = self.ITEMS.get(アイテム)
+        if not item_info:
+            return await interaction.followup.send("❌ そのアイテムは存在しません。")
+
+        current_count = await self.bot.item.get_item_count(interaction.user.id, アイテム)
+        if current_count < 個数:
+            return await interaction.followup.send(f"❌ {item_info['name']}が足りません（所持: {current_count}個）")
+
+        total_price = math.floor(item_info["price"] * 個数)
+        
+        await self.bot.item.add_item(interaction.user.id, アイテム, -個数)
+        await self.bot.money.add_money(interaction.user.id, total_price)
+
+        await interaction.followup.send(
+            f"✅ **{item_info['name']}** を **{個数}個** 売却しました。\n"
+            f"💰 **{total_price}エメラルド** を獲得しました。"
+        )
 
 async def setup(bot):
     await bot.add_cog(ItemsCog(bot))

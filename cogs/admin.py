@@ -30,8 +30,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(name="sync", description="スラッシュコマンドを同期します。")
     async def sync_command(
         self,
-        interaction: discord.Interaction,
-        cog_name: str
+        interaction: discord.Interaction
     ):
         await interaction.response.defer()
         
