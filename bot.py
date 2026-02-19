@@ -27,7 +27,7 @@ class VillagerBot(commands.AutoShardedBot):
     async def setup_hook(self) -> None:
         await self.load_cogs()
         try:
-            # await self.tree.sync()
+            await self.tree.sync()
             print("スラッシュコマンドを同期しました。")
         except Exception as e:
             print(f"スラッシュコマンドの同期に失敗しました。: {e}")

@@ -29,6 +29,21 @@ class ItemsCog(commands.Cog):
                 "name": "石のツルハシ",
                 "price": 1.0,
                 "id": "stone_pickaxe"
+            },
+            "fishing_rod": {
+                "name": "釣竿",
+                "price": 1.0,
+                "id": "fishing_rod"
+            },
+            "tropical_fish": {
+                "name": "熱帯魚",
+                "price": 1.0,
+                "id": "tropical_fish"
+            },
+            "salmon": {
+                "name": "生鮭",
+                "price": 1.0,
+                "id": "salmon"
             }
         }
 
@@ -121,7 +136,7 @@ class ItemsCog(commands.Cog):
             if current.lower() in name.lower():
                 choices.append(
                     app_commands.Choice(
-                        name=f"{name} (所持: {count} | 単価: {price}エメラルド)",
+                        name=f"{name} (単価: {price}エメラルド)",
                         value=item_id
                     )
                 )
