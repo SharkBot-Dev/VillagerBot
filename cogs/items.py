@@ -20,6 +20,21 @@ class ItemsCog(commands.Cog):
                 "price": 0.001,
                 "id": "dirt"
             },
+            "iron_ore": {
+                "name": "鉄鉱石",
+                "price": 0.5,
+                "id": "iron_ore"
+            },
+            "iron_ingot": {
+                "name": "鉄インゴット",
+                "price": 1.0,
+                "id": "iron_ingot"
+            },
+            "coal": {
+                "name": "石炭",
+                "price": 0.05,
+                "id": "coal"
+            },
             "wooden_pickaxe": {
                 "name": "木のツルハシ",
                 "price": 0.5,
@@ -37,12 +52,12 @@ class ItemsCog(commands.Cog):
             },
             "tropical_fish": {
                 "name": "熱帯魚",
-                "price": 1.0,
+                "price": 0.5,
                 "id": "tropical_fish"
             },
             "salmon": {
                 "name": "生鮭",
-                "price": 1.0,
+                "price": 0.5,
                 "id": "salmon"
             }
         }

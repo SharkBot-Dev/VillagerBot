@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord import app_commands
 from bot import VillagerBot
 
-class MineCog(commands.Cog):
+class FishCog(commands.Cog):
     def __init__(self, bot: VillagerBot):
         self.bot = bot
 
@@ -45,4 +45,4 @@ class MineCog(commands.Cog):
         await interaction.followup.send(content=text)
 
 async def setup(bot):
-    await bot.add_cog(MineCog(bot))
+    await bot.add_cog(FishCog(bot))

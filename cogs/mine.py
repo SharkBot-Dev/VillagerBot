@@ -60,9 +60,9 @@ class MineCog(commands.Cog):
         break_chance = 8
 
         if ツルハシ == "wooden_pickaxe":
-            reward_id = random.choice(["stone", "dirt"])
+            reward_id = random.choice(["stone", "dirt", "coal"])
         elif ツルハシ == "stone_pickaxe":
-            reward_id = random.choice(["stone", "stone", "stone", "dirt"]) 
+            reward_id = random.choice(["stone", "stone", "stone", "dirt", "iron_ore", "coal", "coal"]) 
 
         if not reward_id:
             return await interaction.followup.send("❌ この道具では何も採掘できません。")
