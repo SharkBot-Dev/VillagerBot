@@ -40,7 +40,7 @@ class FishCog(commands.Cog):
 
         if random.randint(1, break_chance) == 1:
             await self.bot.item.add_item(interaction.user.id, "fishing_rod", -1)
-            text += f"\n❗ *釣竿** が壊れてしまいました..."
+            text += f"\n❗ **釣竿** が壊れてしまいました..."
 
         await interaction.followup.send(content=text)
 
