@@ -25,7 +25,7 @@ class AdminCog(commands.Cog):
 
         await self.bot.load_extension(f"cogs.{cog_name}")
 
-        await interaction.followup.send(embed=discord.Embed(title="✅リロードしました。", color=discord.Color.green()))
+        await interaction.followup.send(embed=discord.Embed(title="✅ロードしました。", color=discord.Color.green()))
 
     @app_commands.command(name="reload", description="Cogをリロードします。")
     async def reload_command(
